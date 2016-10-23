@@ -19,13 +19,13 @@ object scala_consumer extends Serializable {
 
   def main(args: Array[String]): Unit = {
 
-    val brokers = "maprdemo:9092" // not needed for MapR Streams, needed for Kafka
+    val brokers = "maprdemo:9092" // not needed for MapR Streams, needed for Kafka, but a dummy is still needed
     val groupId = "testgroup"
     val offsetReset = "earliest"
     val batchInterval = "2"
     val pollTimeout = "1000"
-    val topics = "/user/vipulrajan/streaming/original:sensor"
-    val topica = "/user/vipulrajan/streaming/fail:test"
+    val topics = "/user/vipulrajan/streaming/original:sensor"  //|Change these to your own input and output streams
+    val topica = "/user/vipulrajan/streaming/fail:test"        //| ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ 
 
     val sparkConf = new SparkConf().setAppName("SensorStream").setMaster("local[1]").set("spark.testing.memory", "536870912")
                                     .set("spark.streaming.backpressure.enabled", "true")
@@ -52,18 +52,18 @@ object scala_consumer extends Serializable {
       bootstrapServers = brokers.split(",").toList
     )
 
-    val messages = KafkaUtils.createDirectStream[String, String](ssc, kafkaParams, topicsSet)
+    val messages = KafkaUtils.createDirectStream[String, String](ssc, kafkaParams, topicsSet) //reading messages from the stream
 
     val values: DStream[String] = messages.map(_._2)
     println("message values received")
     values.print(10)
 
-    val alertsDStream: DStream[String] = values.filter(_.split(",")(3).toDouble == 0)
+    val alertsDStream: DStream[String] = values.filter(_.split(",")(3).toDouble == 0) //filtering the required records
 
     println("filtered alert messages ")
     alertsDStream.print(10)
 
-    alertsDStream.sendToKafka[StringSerializer](topica,producerConf)   
+    alertsDStream.sendToKafka[StringSerializer](topica,producerConf)   //writing in back into a MapR Stream
 
 
     // Start the computation
