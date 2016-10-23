@@ -6,7 +6,7 @@ import org.apache.spark.{ SparkConf, SparkContext }
 import org.apache.spark.SparkContext._
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.dstream.{ DStream, InputDStream, ConstantInputDStream }
-import org.apache.spark.streaming.kafka.v09.KafkaUtils
+import org.apache.spark.streaming.kafka.v09.KafkaUtils   //special care to be taken because v09.KafkaUtils is the one you need to access MapR streams, not KafkaUtils
 import org.apache.spark.streaming.{ Seconds, StreamingContext }
 import org.apache.spark.sql.functions.avg
 import org.apache.spark.rdd.RDD
@@ -16,17 +16,6 @@ import org.apache.kafka.common.serialization.{ Deserializer, Serializer }
 import org.apache.kafka.common.serialization.StringSerializer;
 
 object scala_consumer extends Serializable {
-
-  // schema for sensor data   
-  /*case class Sensor(resid: String, date: String, time: String, hz: Double, disp: Double, flo: Double, sedPPM: Double, psi: Double, chlPPM: Double) extends Serializable
-
-  // function to parse line of sensor data into Sensor class
-  def parseSensor(str: String): Sensor = {
-    val p = str.split(",")
-    Sensor(p(0), p(1), p(2), p(3).toDouble, p(4).toDouble, p(5).toDouble, p(6).toDouble, p(7).toDouble, p(8).toDouble)
-  }*/
-  val timeout = 10 // Terminate after N seconds
-  val batchSeconds = 2 // Size of batch intervals
 
   def main(args: Array[String]): Unit = {
 
@@ -45,7 +34,7 @@ object scala_consumer extends Serializable {
 
     val ssc = new StreamingContext(sparkConf, Seconds(batchInterval.toInt))
 
-    // Create direct kafka stream with brokers and topics
+    // Create direct kafka stream with brokers and topics, again brokers are only placeholders for MapR streams
     val topicsSet = topics.split(",").toSet
     val kafkaParams = Map[String, String](
       ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG -> brokers,
